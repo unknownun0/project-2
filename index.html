@@ -237,7 +237,7 @@ const normalizePhotoPath = value => {
   if (!cleaned) return '';
   if (cleaned.startsWith('/')) return cleaned;
   if (/^[a-zA-Z]:\//.test(cleaned) || /^file:\//i.test(cleaned)) {
-    return cleaned.split('/').pop() || '';
+    return cleaned; // Return full path instead of just filename
   }
   return cleaned.replace(/^\/+/, '');
 };
@@ -259,7 +259,7 @@ const DEFAULTS = {
   contact3Value: '+63 917 568 4262',
   address: 'Alabang-Zapote Road, Pamplona 3, Las Piñas City, Philippines 1740',
   email: 'engr_rptamayo@yahoo.com',
-  photo: '/University_of_Perpetual_Help_System_DALTA_logo.png',
+  photo: 'D:/xampp/project 2/University_of_Perpetual_Help_System_DALTA_logo.png',
   social: {
     facebook: '',
     instagram: '',
