@@ -235,11 +235,17 @@ const normalizePhotoPath = value => {
   if (!value || typeof value !== 'string') return '';
   const cleaned = value.replace(/\\/g, '/').trim();
   if (!cleaned) return '';
-  if (cleaned.startsWith('/')) return cleaned;
-  if (/^[a-zA-Z]:\//.test(cleaned) || /^file:\//i.test(cleaned)) {
-    return cleaned.split('/').pop() || ''; // Extract filename only for local paths
+  if (cleaned.startsWith('/')) {
+    // Web root relative path - keep as-is for http/https
+    return cleaned;
   }
-  return cleaned.replace(/^\/+/, '');
+  if (/^[a-zA-Z]:\//.test(cleaned) || /^file:\//i.test(cleaned)) {
+    // Windows file path or file:// - extract just the filename
+    // this works when opening via file:/// protocol
+    return cleaned.split('/').pop() || '';
+  }
+  // No leading slash, no drive letter - relative path from current file
+  return cleaned;
 };
 
 const STORAGE_KEY = 'profile-card';
@@ -258,8 +264,8 @@ const DEFAULTS = {
   contact3Label: 'Mobile',
   contact3Value: '+63 917 568 4262',
   address: 'Alabang-Zapote Road, Pamplona 3, Las Piñas City, Philippines 1740',
-  email: 'engr_rptamayo@yahoo.com',
-  photo: '/University_of_Perpetual_Help_System_DALTA_logo.png',
+  // Use filename only - works with both file:// and http://localhost
+  photo: 'University_of_Perpetual_Help_System_DALTA_logo.png',
   social: {
     facebook: '',
     instagram: '',
