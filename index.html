@@ -270,11 +270,12 @@ const DEFAULTS = {
   // On XAMPP localhost, the normalizePhotoPath function handles this
   photo: 'https://upload.wikimedia.org/wikipedia/en/2/2d/University_of_Perpetual_Help_System_DALTA_logo.png',
   social: {
-    facebook: '',
+    facebook: 'https://www.facebook.com/share/1FKYUX9v28/?mibextid=wwXIfr',
     instagram: '',
-    linkedin: '',
+    linkedin: 'https://www.linkedin.com/in/engr-ariel-f-olveros',
+    youtube: 'https://youtube.com/@arielf.olveros7248?si=Vzuld5B3-kCYXXVv',
     wechat: '+63 917 568 4262',
-    whatsapp: '',
+    whatsapp: '09175099536',
     telegram: '',
     other: '',
     viber: '+63 917 568 4262'
@@ -409,6 +410,10 @@ document.getElementById('details').append(
 );
 
 const socialEntries = [
+  S.facebook ? row({ icon: 'facebook', label: 'Facebook', href: S.facebook }) : null,
+  S.linkedin ? row({ icon: 'linkedin', label: 'LinkedIn', href: S.linkedin }) : null,
+  S.youtube ? row({ icon: 'link', label: 'YouTube', href: S.youtube }) : null,
+  S.whatsapp ? row({ icon: 'whatsapp', label: 'WhatsApp', href: 'whatsapp:' + digits(S.whatsapp) }) : null,
   S.wechat ? row({ icon: 'wechat', label: 'WeChat', value: S.wechat, action: el => shareOrCopy(el, S.wechat) }) : null,
   S.viber ? row({ icon: 'phone', label: 'Viber', value: S.viber, href: 'tel:' + digits(S.viber) }) : null
 ].filter(Boolean);
