@@ -36,12 +36,13 @@
   html { scroll-padding-top: env(safe-area-inset-top, 0px); height: 100%; }
   *, *::before, *::after { box-sizing: inherit; }
   body {
-    margin: 0; height: 100%;
+    margin: 0; height: auto;
     background: var(--page-bg);
     display: grid; place-items: center;
     font-family: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     color: var(--ink);
     -webkit-font-smoothing: antialiased;
+    overflow: auto;
   }
   button { font: inherit; color: inherit; cursor: pointer; }
   :focus-visible { outline: 2px solid #ff5fa2; outline-offset: 2px; }
@@ -52,22 +53,22 @@
     --p: 0;
     position: relative;
     width: min(390px, 100%);
-    height: min(844px, 100%);
+    height: min(844px, 100vh);
     background: #000;
     border-radius: 36px;
-    overflow: hidden;
+    overflow: auto;
     box-shadow: 0 30px 80px rgba(0,0,0,.35);
     isolation: isolate;
   }
   @media (max-width: 430px) {
-    .app { width: 100%; height: 100%; border-radius: 0; box-shadow: none; }
+    .app { width: 100%; height: 100vh; height: 100dvh; border-radius: 0; box-shadow: none; }
     body { background: #000; }
   }
 
   /* ---------- Hero (dark card) ---------- */
   .hero {
     position: absolute; inset: 0;
-    background: #000; color: #fff;
+    background: var(--page-bg); color: #fff;
     transform-origin: 50% 0;
     transform: translateY(calc(var(--p) * 14px)) scale(calc(1 - var(--p) * .08));
     border-radius: calc(var(--p) * 28px);
@@ -205,13 +206,10 @@
       </div>
 
       <div class="stats">
-        <div class="stat"><b id="companyStatA">University of Perpetual Help</b><span>Company</span></div>
+        <div class="stat"><b id="companyStatA">REGISTERED ELECTRICAL ENGINEER</b><span></span></div>
       </div>
 
       <button class="follow" id="follow" type="button" aria-pressed="false">Message</button>
-      <button class="follow" id="saveAllBtn" type="button" aria-label="Save all contacts" style="margin-left: 12px; background: var(--grad); color: #fff; font-size: 14px; font-weight: 700; transition: transform 160ms ease, background 200ms ease; border-radius: 999px; padding: 0 24px;">
-        Save All
-      </button>
     </div>
 
     <button class="grab" id="openBtn" type="button" aria-label="Show contact info"><i></i></button>
@@ -233,48 +231,39 @@
 </main>
 
 <script>
-/* ---------- Default placeholder data (overridden by edit.html) ---------- */
+/* ---------- Default profile data ---------- */
 const normalizePhotoPath = value => {
   if (!value || typeof value !== 'string') return '';
   const cleaned = value.replace(/\\/g, '/').trim();
   if (!cleaned) return '';
-  if (cleaned.startsWith('/')) {
-    // Web root relative path - keep as-is for http/https
-    return cleaned;
-  }
   if (/^[a-zA-Z]:\//.test(cleaned) || /^file:\//i.test(cleaned)) {
-    // Windows file path or file:// - extract just the filename
-    // this works when opening via file:/// protocol
     return cleaned.split('/').pop() || '';
   }
-  // No leading slash, no drive letter - relative path from current file
-  return cleaned;
+  return cleaned.replace(/^\/+/, '');
 };
 
-const STORAGE_KEY = 'profile-card';
+const STORAGE_KEY = 'profile-card-ariel-olveros-v2';
 const DEFAULTS = {
   name: 'Engr. Roland Paul V. Tamayo, PAFR, ME, MBA',
   nickname: 'Engr. Roland',
   position: 'Company Commander / General Services Manager',
-  phone: '+00 000 0000',
-  phone2: '+00 000 0000',
   company: 'University of Perpetual Help',
   bio: 'Maj Roland Paul V. Tamayo, Headquarters Support Service Group (HSSG) 1st AFP ArmC AFPSN 0-147379',
-  contact1Label: 'Truckline',
-  contact1Value: '+ (632) 8872-ALTA',
-  contact2Label: 'Truckline',
-  contact2Value: '+ (632) 8874 8514 local 5064',
-  contact3Label: 'Mobile',
-  contact3Value: '+63 917 568 4262',
+  contact1Label: 'CONTACT',
+  contact1Value: '',
+  contact2Label: 'CONTACT',
+  contact2Value: '',
   address: 'Alabang-Zapote Road, Pamplona 3, Las Piñas City, Philippines 1740',
   email: 'engr_rptamayo@yahoo.com',
-  // Use leading slash - resolves to domain root on Vercel
-  // e.g., https://onetaproland.vercel.app/University_of_Perpetual_Help_System_DALTA_logo.png
-  // On XAMPP localhost, the normalizePhotoPath function handles this
-  photo: 'https://upload.wikimedia.org/wikipedia/en/2/2d/University_of_Perpetual_Help_System_DALTA_logo.png',
+  email2: '',
+  
+  photo: 'University_of_Perpetual_Help_System_DALTA_logo.png',
   social: {
-    whatsapp:'+63 917 568 4262',
-    viber: '+63 917 568 4262'
+    facebook: '',
+    facebookPage: '',
+    linkedin: '',
+    Youtube: '',
+    whatsapp: '+63 917 568 4262'
   }
 };
 
@@ -289,8 +278,16 @@ function loadProfile() {
 
   const cleanProfile = {
     ...finalProfile,
-    photo: normalizePhotoPath(finalProfile.photo || DEFAULTS.photo),
-    social: { ...DEFAULTS.social, ...(finalProfile.social || {}) }
+    photo: normalizePhotoPath(DEFAULTS.photo),
+    social: {
+      ...DEFAULTS.social,
+      ...(finalProfile.social || {}),
+      facebook: DEFAULTS.social.facebook,
+      facebookPage: DEFAULTS.social.facebookPage,
+      linkedin: DEFAULTS.social.linkedin,
+      Youtube: DEFAULTS.social.Youtube,
+      whatsapp: DEFAULTS.social.whatsapp
+    }
   };
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify(cleanProfile));
@@ -320,7 +317,17 @@ const placeholderPhoto = `
 
 function renderProfilePhoto() {
   if (PROFILE.photo) {
-    photoEl.innerHTML = `<img src="${PROFILE.photo}" alt="Profile photo">`;
+    const img = new Image();
+    img.src = PROFILE.photo;
+    img.alt = 'Profile photo';
+    img.onload = () => {
+      photoEl.innerHTML = '';
+      photoEl.appendChild(img);
+    };
+    img.onerror = () => {
+      photoEl.innerHTML = placeholderPhoto;
+    };
+    photoEl.appendChild(img);
     return;
   }
   photoEl.innerHTML = placeholderPhoto;
@@ -345,6 +352,7 @@ const ICONS = {
   linkedin: svg('<path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/>'),
   wechat: svg('<path d="M9 4C5.4 4 2.5 6.3 2.5 9.2c0 1.6.9 3.1 2.3 4L4.3 15.5l2.4-1.2c.5.1 1 .2 1.5.2"/><path d="M21.5 14.2c0-2.6-2.5-4.7-5.5-4.7s-5.5 2.1-5.5 4.7 2.5 4.7 5.5 4.7c.7 0 1.3-.1 1.9-.3l2 1-.4-2c1.1-.8 2-2 2-3.4z"/>'),
   whatsapp: svg('<path d="M3 21l1.65-4.9A9 9 0 1 1 8 19.4L3 21z"/><path d="M9 9c0 3.5 3 6.5 6 6l1-1.5-2-1-1 .8c-1-.5-1.8-1.3-2.3-2.3l.8-1-1-2z"/>'),
+  youtube: svg('<path d="M22 12s0-3.2-.4-4.7a2.5 2.5 0 0 0-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.5a2.5 2.5 0 0 0-1.8 1.8C2 8.8 2 12 2 12s0 3.2.4 4.7a2.5 2.5 0 0 0 1.8 1.8C5.8 19 12 19 12 19s6.2 0 7.8-.5a2.5 2.5 0 0 0 1.8-1.8C22 15.2 22 12 22 12z"/><path d="m10 9 5 3-5 3z"/>'),
   telegram: svg('<path d="M22 3L2 11l7 2.5L11.5 21l3-5 5 3.5L22 3z"/><path d="M9 13.5L22 3"/>'),
   link: svg('<path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/>')
 };
@@ -384,53 +392,35 @@ async function shareOrCopy(el, text) {
   } catch (e) { /* share cancelled or clipboard unavailable */ }
 }
 
-async function saveContact() {
-  const escapeVCard = value => String(value || '')
-    .replace(/\\/g, '\\\\')
-    .replace(/\r?\n/g, '\\n')
-    .replace(/,/g, '\\,')
-    .replace(/;/g, '\\;');
-  const phoneEntries = [
-    ['Phone', PROFILE.phone],
-    ['Phone 2', PROFILE.phone2],
-    [PROFILE.contact1Label || 'Contact 1', PROFILE.contact1Value],
-    [PROFILE.contact2Label || 'Contact 2', PROFILE.contact2Value],
-    [PROFILE.contact3Label || 'Contact 3', PROFILE.contact3Value],
-    ['WhatsApp', PROFILE.social.whatsapp],
-    ['Viber', PROFILE.social.viber]
-  ].filter(([, value]) => value && /[1-9]/.test(digits(value)));
+function saveContact() {
+  const escapeVCard = value => String(value || '').replace(/\\/g, '\\\\').replace(/\r?\n/g, '\\n').replace(/,/g, '\\,').replace(/;/g, '\\;');
   const lines = [
     'BEGIN:VCARD',
     'VERSION:3.0',
-    `FN:${escapeVCard(PROFILE.name)}`,
-    'N:;;;;',
-    `NICKNAME:${escapeVCard(PROFILE.nickname)}`,
-    `ORG:${escapeVCard(PROFILE.company)}`,
-    `TITLE:${escapeVCard(PROFILE.position)}`,
-    ...phoneEntries.map(([, value]) => `TEL;TYPE=CELL:${escapeVCard(value)}`),
-    `EMAIL;TYPE=INTERNET:${escapeVCard(PROFILE.email)}`,
-    `ADR;TYPE=WORK:;;${escapeVCard(PROFILE.address)};;;;`,
-    `NOTE:${escapeVCard(PROFILE.bio)}`,
-    ...Object.entries(PROFILE.social).filter(([key, value]) => value && !['whatsapp', 'viber'].includes(key))
-      .map(([key, value]) => `X-SOCIALPROFILE;TYPE=${key}:${escapeVCard(value)}`),
-    ...['whatsapp', 'viber'].filter(key => PROFILE.social[key])
-      .map(key => `X-SOCIALPROFILE;TYPE=${key}:tel:${digits(PROFILE.social[key])}`),
+    `FN:${escapeVCard(P.name)}`,
+    'N:OLVEROS;ARIEL F.;;;',
+    `ORG:${escapeVCard(P.company)}`,
+    `TITLE:${escapeVCard(P.position)}`,
+    `NOTE:${escapeVCard(P.bio)}`,
+    ...[...new Set([P.contact1Value, P.contact2Value, P.contact3Value].filter(Boolean))].map(value => `TEL;TYPE=CELL:${escapeVCard(value)}`),
+    `EMAIL;TYPE=INTERNET:${escapeVCard(P.email)}`,
+    `EMAIL;TYPE=INTERNET:${escapeVCard(P.email2)}`,
+    `ADR;TYPE=WORK:;;${escapeVCard(P.address)};;;;`,
+    `URL:${escapeVCard(P.social.facebook)}`,
+    `X-SOCIALPROFILE;TYPE=facebook:${escapeVCard(P.social.facebook)}`,
+    `X-SOCIALPROFILE;TYPE=facebook:${escapeVCard(P.social.facebookPage)}`,
+    `X-SOCIALPROFILE;TYPE=linkedin:${escapeVCard(P.social.linkedin)}`,
+    `X-SOCIALPROFILE;TYPE=youtube:${escapeVCard(P.social.Youtube)}`,
+    `X-SOCIALPROFILE;TYPE=whatsapp:https://wa.me/${digits(P.social.whatsapp).replace(/^\+/, '')}`,
     'END:VCARD'
-  ];
+  ].filter(line => !line.endsWith(':'));
   const blob = new Blob([lines.join('\r\n')], { type: 'text/vcard;charset=utf-8' });
-  const fileName = (PROFILE.name.replace(/[^a-z0-9_-]+/gi, '_').replace(/^_+|_+$/g, '') || 'contact') + '.vcf';
-  const file = new File([blob], fileName, { type: 'text/vcard' });
-  if (!navigator.share || !navigator.canShare || !navigator.canShare({ files: [file] })) {
-    window.alert('This browser cannot open the Contacts share flow. Open this page on your phone in a browser that supports sharing files.');
-    return;
-  }
-  try {
-    await navigator.share({ files: [file], title: PROFILE.name });
-  } catch (error) {
-    if (error.name !== 'AbortError') {
-      window.alert('Could not open the Contacts share flow. Please try again on your phone.');
-    }
-  }
+  const downloadUrl = URL.createObjectURL(blob);
+  const download = document.createElement('a');
+  download.href = downloadUrl;
+  download.download = `${(P.nickname || 'contact').replace(/[^a-z0-9-_]+/gi, '-')}.vcf`;
+  download.click();
+  setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
 }
 
 const P = PROFILE, S = PROFILE.social;
@@ -441,26 +431,30 @@ const companyName = P.company || 'University of Perpetual Help';
 document.getElementById('companyStatA').textContent = companyName;
 
 document.getElementById('details').append(
-  row({ icon: 'user', label: 'Save to contacts', value: 'Choose Contacts in the share sheet', action: saveContact }),
+  row({ icon: 'user', label: 'Save contact', value: 'Add to contacts', action: saveContact }),
   row({ icon: 'user',    label: 'Name',           value: P.name }),
   row({ icon: 'user',    label: 'Bio',            value: P.bio }),
   row({ icon: 'nick',    label: 'Nickname',       value: P.nickname }),
   row({ icon: 'company', label: 'Company',        value: P.company }),
   row({ icon: 'job',     label: 'Position',       value: P.position }),
-  row({ icon: 'phone',   label: P.contact1Label || 'Contact 1', value: P.contact1Value || '—', href: P.contact1Value ? 'tel:' + digits(P.contact1Value) : undefined }),
-  row({ icon: 'phone',   label: P.contact2Label || 'Contact 2', value: P.contact2Value || '—', href: P.contact2Value ? 'tel:' + digits(P.contact2Value) : undefined }),
-  row({ icon: 'phone',   label: P.contact3Label || 'Contact 3', value: P.contact3Value || '—', href: P.contact3Value ? 'tel:' + digits(P.contact3Value) : undefined }),
+  ...[P.contact1Value, P.contact2Value, P.contact3Value].map((value, index) => value ? row({
+    icon: 'phone',
+    label: P['contact' + (index + 1) + 'Label'] || 'Contact ' + (index + 1),
+    value,
+    href: 'tel:' + digits(value)
+  }) : []),
   row({ icon: 'pin',     label: 'Address',        value: P.address,
         href: 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(P.address) }),
-  row({ icon: 'mail',    label: 'Email',          value: P.email,  href: 'mailto:' + P.email })
+  row({ icon: 'mail',    label: 'Gmail',          value: P.email,  href: 'mailto:' + P.email }),
+  row({ icon: 'mail',    label: 'UP email',       value: P.email2, href: 'mailto:' + P.email2 })
 );
 
 const socialEntries = [
-  S.facebook ? row({ icon: 'facebook', label: 'Facebook', href: S.facebook }) : null,
-  S.linkedin ? row({ icon: 'linkedin', label: 'LinkedIn', href: S.linkedin }) : null,
-  S.whatsapp ? row({ icon: 'whatsapp', label: 'WhatsApp', value: S.whatsapp, href: 'whatsapp:' + digits(S.whatsapp) }) : null,
-  S.wechat ? row({ icon: 'wechat', label: 'WeChat', value: S.wechat, action: el => shareOrCopy(el, S.wechat) }) : null,
-  S.viber ? row({ icon: 'phone', label: 'Viber', value: S.viber, href: 'tel:' + digits(S.viber) }) : null
+  S.whatsapp ? row({ icon: 'whatsapp', label: 'WhatsApp', value: S.whatsapp, href: 'https://wa.me/' + digits(S.whatsapp).replace(/^\+/, '') }) : null,
+  S.viber ? row({ icon: 'viber', label: 'Viber', value: S.whatsapp, href: 'https://viber.com/' + digits(S.whatsapp).replace(/^\+/, '') }) : null,
+  S.facebook ? row({ icon: 'facebook', label: 'Facebook', value: S.facebook, href: S.facebook }) : null,
+  S.linkedin ? row({ icon: 'linkedin', label: 'LinkedIn', value: S.linkedin, href: S.linkedin }) : null,
+  S.youtube ? row({ icon: 'youtube', label: 'YouTube', value: S.youtube, href: S.youtube }) : null
 ].filter(Boolean);
 
 document.getElementById('socials').append(...socialEntries);
@@ -471,10 +465,6 @@ follow.addEventListener('click', () => {
   const email = (P.email || 'hello@example.com').trim();
   window.location.href = 'mailto:' + email + '?subject=' + encodeURIComponent('Hello ' + P.name);
 });
-
-const saveAllBtn = document.getElementById('saveAllBtn');
-saveAllBtn.addEventListener('click', () => saveContact());
-
 document.querySelectorAll('.topbar .glass').forEach(b => b.addEventListener('click', e => e.preventDefault()));
 
 /* ---------- Scroll-reveal engine ---------- */
