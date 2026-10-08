@@ -242,7 +242,7 @@ const normalizePhotoPath = value => {
   return cleaned.replace(/^\/+/, '');
 };
 
-const STORAGE_KEY = 'profile-card-ariel-olveros-v2';
+const STORAGE_KEY = 'profile-card-roland-tamayo-v2';
 const DEFAULTS = {
   name: 'Engr. Roland Paul V. Tamayo, PAFR, ME, MBA',
   nickname: 'Engr. Roland',
@@ -398,7 +398,7 @@ function saveContact() {
     'BEGIN:VCARD',
     'VERSION:3.0',
     `FN:${escapeVCard(P.name)}`,
-    'N:OLVEROS;ARIEL F.;;;',
+    'N:TAMAYO;ROLAND;;;',
     `ORG:${escapeVCard(P.company)}`,
     `TITLE:${escapeVCard(P.position)}`,
     `NOTE:${escapeVCard(P.bio)}`,
